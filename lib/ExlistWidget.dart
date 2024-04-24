@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'expense.dart';
+import 'Expense.dart';
 
 class EXListWidget extends StatelessWidget {
-  List<expense> allExpenses;
+  List<Expense> allExpenses;
   Function deleteExpense;
   EXListWidget({required this.allExpenses, required this.deleteExpense});
 

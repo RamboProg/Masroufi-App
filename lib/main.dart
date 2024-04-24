@@ -3,7 +3,7 @@ import 'ExlistWidget.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'NewExWidget.dart';
-import 'expense.dart';
+import 'Expense.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -42,22 +42,42 @@ class mainPage extends StatefulWidget {
 }
 
 class _mainPageState extends State<mainPage> {
-  final List<expense> allExpenses = [];
-  void addnewExpense(
-      {required String t, required double a, required DateTime d}) {
-    setState(() {
-      allExpenses.add(
-          expense(amount: a, date: d, id: DateTime.now().toString(), title: t));
-    });
-    Navigator.of(context).pop();
+  final List<Expense> allExpenses = [];
+  void addnewExpense({
+    required String t,
+    required double a,
+    required DateTime d,
+  }) async {
+    final expense =
+        Expense(amount: a, date: d, id: DateTime.now().toString(), title: t);
+    try {
+      await firestore.collection('expenses').add(expense.toMap());
+      setState(() {
+        allExpenses.add(expense);
+      });
+      Navigator.of(context).pop();
+    } catch (error) {
+      // Handle errors appropriately (e.g., show a snackbar to the user)
+      print(error.toString());
+    }
   }
 
-  void deleteExpense({required String id}) {
-    setState(() {
-      allExpenses.removeWhere((e) {
-        return e.id == id;
+  void deleteExpense({required String id}) async {
+    try {
+      // Find the document to delete in Firestore
+      final docRef = firestore.collection('expenses').doc(id);
+
+      // Delete the document from Firestore
+      await docRef.delete();
+
+      // Update the local list (optional, as data might be fetched from Firestore later)
+      setState(() {
+        allExpenses.removeWhere((e) => e.id == id);
       });
-    });
+    } catch (error) {
+      // Handle errors appropriately (e.g., show a snackbar to the user)
+      print(error.toString());
+    }
   }
 
   double calculateTotal() {
@@ -124,14 +144,14 @@ class _mainPageState extends State<mainPage> {
 class mainPageHook extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    final ValueNotifier<List<expense>> allExpenses =
-        useState<List<expense>>([]);
+    final ValueNotifier<List<Expense>> allExpenses =
+        useState<List<Expense>>([]);
     var context = useContext();
     void addnewExpense(
         {required String t, required double a, required DateTime d}) {
       allExpenses.value = [
         ...allExpenses.value,
-        expense(amount: a, date: d, id: DateTime.now().toString(), title: t)
+        Expense(amount: a, date: d, id: DateTime.now().toString(), title: t)
       ];
 
       Navigator.of(context).pop();
@@ -139,7 +159,7 @@ class mainPageHook extends HookWidget {
 
     void deleteExpense({required String id}) {
       allExpenses.value = [
-        ...?(allExpenses.value as List<expense>)
+        ...?(allExpenses.value as List<Expense>)
           ..removeWhere((e) {
             return e.id == id;
           })
@@ -198,7 +218,7 @@ class mainPageHook extends HookWidget {
             ),
           ),
           EXListWidget(
-              allExpenses: allExpenses.value as List<expense>,
+              allExpenses: allExpenses.value as List<Expense>,
               deleteExpense: deleteExpense),
         ],
       ),
