@@ -5,8 +5,16 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'NewExWidget.dart';
 import 'expense.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+final firestore = FirebaseFirestore.instance;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -111,11 +119,13 @@ class _mainPageState extends State<mainPage> {
     );
   }
 }
+
 //-----------------------(Hook version)-----------------------------
 class mainPageHook extends HookWidget {
   @override
   Widget build(BuildContext context) {
-final ValueNotifier<List<expense>> allExpenses = useState<List<expense>>([]);
+    final ValueNotifier<List<expense>> allExpenses =
+        useState<List<expense>>([]);
     var context = useContext();
     void addnewExpense(
         {required String t, required double a, required DateTime d}) {
